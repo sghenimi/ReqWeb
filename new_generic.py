@@ -1,18 +1,16 @@
-from typing import Generic, TypeVar, ParamSpec, Callable, Iterable, TypeVarTuple
+#from 3.12
 
-T = TypeVar("T")
-Ts = TypeVarTuple("Ts")
-P = ParamSpec("P")
+from typing import Callable, Iterable
 
-TaggedTuple: type = tuple[str, *Ts]
+type TaggedTuple[*Ts] = tuple[str, *Ts]
 
-def decorator(func: Callable[P, T]) -> Callable[P, T]:
+def decorator[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         return func(*args, **kwargs)
     return wrapper
 
-class Container(Generic[T, *Ts]):
-    def __init__(self, items: Iterable[T, *Ts] = ()):
+class Container[T]:
+    def __init__(self, items: Iterable[T] = ()):
         self.items = list(items)
 
     def __getitem__(self, item: int) -> T:
