@@ -17,6 +17,11 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"
+        },
+        {
+            "env": {
+                "PYTHONPATH":"${/Users/Soufiane/Sandbox/VSCodeProjects/ReqWeb/projects/calculator}"
+            }
         }
     ]
 }
