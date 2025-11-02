@@ -10,5 +10,7 @@ dependencies = [
     "fastapi>=0.119.0",
     "flake8>=7.3.0",
     "ipykernel>=7.0.1",
+    "pyarrow>=22.0.0",
     "pydantic[email]>=2.12.3",
+    "pyiceberg[hive,s3fs,sql-sqlite]>=0.10.0",
 ]
