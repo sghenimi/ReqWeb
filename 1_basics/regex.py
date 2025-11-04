@@ -20,15 +20,16 @@ def re_search():
     # \n and \t has a special meaning in Python
     # Python will treat them differently
 
-    print("with raw string:")
+    print("## with raw string:")
     pattern = r"^c:\\example\\task\\new"
     res = re.search(pattern, target_string)
     print(res.group())
 
-    print("without raw string:")
+    print("\n## without raw string:")
     pattern = "^c:\\example\\task\\new"
     res = re.search(pattern, target_string)
-    print(res.group())
+    print(res)
+    #  print(res, res.group())
     
 
 
