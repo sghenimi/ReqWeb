@@ -1,3 +1,5 @@
+import unicodedata
+
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -36,6 +38,11 @@ books_db: List[Book] = [
          description="Une épopée humaine et sociale dans la France du XIXe siècle.")
 ]
 
+# ----- Helper pour normaliser les chaînes -----
+def normalize(text: str) -> str:
+    normalized = unicodedata.normalize('NFD', text)
+    return ''.join(c for c in normalized if unicodedata.category(c) != 'Mn').lower()
+
 
 # ----- Health check -----
 @app.get("/health")
@@ -58,12 +65,16 @@ async def read_books():
     return books_db
 
 
-@app.get("/books/{title}", response_model=List[Book])
-async def get_book(title: str):
-    _found_books = [_book for _book in books_db if title.lower() in _book.title.lower()]
-    if not _found_books:
-        raise HTTPException(status_code=404, detail="Book not found")
-    return _found_books
+@app.get("/books/search/{title}", response_model=List[Book])
+def search_books(title: str):
+    normalized_query = normalize(title)
+    results = [
+        book for book in books_db
+        if normalized_query in normalize(book.title)
+    ]
+    if not results:
+        raise HTTPException(status_code=404, detail="No books found matching title")
+    return results
 
 
 @app.put("/books/{book_id}", response_model=Book)
@@ -84,11 +95,15 @@ async def delete_book(book_id: UUID):
             return books_db.pop(index)
     raise HTTPException(status_code=404, detail="Book not found")
 
-# app.add_middleware(CORSMiddleware,
-#                    allow_origins=["*"],
-#                    allow_methods=["*"],
-#                    allow_headers=["*"])
-# if __name__ == "__main__":
-#     uvicorn.run("main:app", host="localhost", port=8000,
-#                 reload=True, log_level="debug",
-#                 workers=1, limit_concurrency=1, limit_max_requests=1)
+app.add_middleware(CORSMiddleware,
+                   allow_origins=["*"],
+                   allow_methods=["*"],
+                   allow_headers=["*"])
+if __name__ == "__main__":
+    logger.info("Starting app...")
+    uvicorn.run("main:app", host="localhost", port=8000,
+                reload=True, log_level="debug",
+                # workers=1,
+                # limit_concurrency=1,
+                # limit_max_requests=1
+                )
