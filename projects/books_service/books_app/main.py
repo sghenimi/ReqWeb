@@ -7,8 +7,26 @@ from typing import List, Optional
 from uuid import uuid4, UUID
 from loguru import logger
 from starlette.middleware.cors import CORSMiddleware
+import os
+from dotenv import load_dotenv
 
-app = FastAPI()
+# Charger les variables d'environnement
+load_dotenv()
+
+# ----- Config -----
+APP_NAME = os.getenv("APP_NAME", "Book API")
+APP_DEBUG = os.getenv("APP_DEBUG", "False") == "True"
+APP_VERSION = os.getenv("APP_VERSION", "0.1.0")
+SERVER_HOST = os.getenv("SERVER_HOST", "127.0.0.1")
+SERVER_PORT = int(os.getenv("SERVER_PORT", 8000))
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./books.db")
+
+# Initialisation de FastAPI
+app = FastAPI(
+    title=APP_NAME,
+    version=APP_VERSION,
+    debug=APP_DEBUG
+)
 
 
 # ----- Data Models -----
@@ -123,8 +141,11 @@ app.add_middleware(CORSMiddleware,
                    allow_headers=["*"])
 if __name__ == "__main__":
     logger.info("Starting app...")
-    uvicorn.run("main:app", host="localhost", port=8000,
-                reload=True, log_level="debug",
+    uvicorn.run("main:app",
+                host=SERVER_HOST,
+                port=SERVER_PORT,
+                reload=True,
+                log_level="debug",
                 # workers=1,
                 # limit_concurrency=1,
                 # limit_max_requests=1
