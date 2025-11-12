@@ -84,7 +84,7 @@ def health_check(request: Request):
 
 # ----- Pagination -----
 @app.get("/books/", response_model=List[Book])
-def get_books(
+def get_books(request: Request,
         page: int = Query(1, ge=1, description="Page number (starting at 1)"),
         limit: int = Query(10, ge=1, le=50, description="Number of books per page")
 ):
