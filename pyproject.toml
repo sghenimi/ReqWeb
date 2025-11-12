@@ -19,5 +19,6 @@ dependencies = [
     "pydantic[email]>=2.12.3",
     "pyiceberg[hive,s3fs,sql-sqlite]>=0.10.0",
     "pytest>=9.0.0",
+    "slowapi>=0.1.9",
     "uvicorn>=0.38.0",
 ]

@@ -1,7 +1,7 @@
 import unicodedata
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from pydantic import BaseModel
 from typing import List, Optional
 from uuid import uuid4, UUID
@@ -9,6 +9,9 @@ from loguru import logger
 from starlette.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 # Charger les variables d'environnement
 load_dotenv()
@@ -21,12 +24,18 @@ SERVER_HOST = os.getenv("SERVER_HOST", "127.0.0.1")
 SERVER_PORT = int(os.getenv("SERVER_PORT", 8000))
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./books.db")
 
+# ----- Rate limiter -----
+limiter = Limiter(key_func=get_remote_address)
 # Initialisation de FastAPI
 app = FastAPI(
     title=APP_NAME,
     version=APP_VERSION,
     debug=APP_DEBUG
 )
+
+# Register rate limit handler
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 # ----- Data Models -----
@@ -68,7 +77,8 @@ def normalize(text: str) -> str:
 
 # ----- Health check -----
 @app.get("/health")
-def health_check():
+@limiter.limit("5/minute")
+def health_check(request: Request):
     return {"status": "ok", "message": "API is healthy"}
 
 
