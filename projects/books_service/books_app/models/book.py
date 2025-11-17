@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer
 from uuid import uuid4
-from books_app.database_books import Base
+from books_app.core.database_books import Base
 
 class BookModel(Base):
     __tablename__ = "books"

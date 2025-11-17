@@ -10,7 +10,7 @@ class Book(BaseModel):
     description: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class BookCreate(BaseModel):
@@ -25,3 +25,7 @@ class BookUpdate(BaseModel):
     author: Optional[str] = None
     year: Optional[int] = None
     description: Optional[str] = None
+
+class BooksResponse(BaseModel):
+    total: int
+    items: list[Book]

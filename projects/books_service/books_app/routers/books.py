@@ -3,12 +3,13 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from uuid import UUID
-from books_app.database_books import SessionLocal
+from books_app.core.database_books import SessionLocal
 from books_app.models.book import BookModel
-from books_app.schemas.book import Book, BookCreate, BookUpdate
+from books_app.schemas.book import Book, BookCreate, BookUpdate, BooksResponse
 from books_app.utils.normalize import normalize
 
 router = APIRouter(prefix="/books", tags=["Books"])
+
 
 def get_db():
     db = SessionLocal()
@@ -19,14 +20,22 @@ def get_db():
 
 
 # ----- GET with pagination -----
-@router.get("/", response_model=list[Book])
+@router.get("/", response_model=BooksResponse)
 def get_books(
-    db: Session = Depends(get_db),
-    page: int = Query(1, ge=1),
-    limit: int = Query(10, ge=1, le=50)
+        db: Session = Depends(get_db),
+        page: int = Query(1, ge=1),
+        limit: int = Query(10, ge=1, le=50)
 ):
     offset = (page - 1) * limit
-    return db.query(BookModel).offset(offset).limit(limit).all()
+
+    total = db.query(BookModel).count()  # total number of books
+
+    books = db.query(BookModel).offset(offset).limit(limit).all()
+
+    return BooksResponse(
+        total=total,
+        items=books
+    )
 
 
 # ----- Search -----
@@ -51,6 +60,7 @@ def create_book(book: BookCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_book)
     return new_book
+
 
 @router.post("/books/batch", response_model=List[Book])
 def create_multiple_books(books: List[BookCreate], db: Session = Depends(get_db)):

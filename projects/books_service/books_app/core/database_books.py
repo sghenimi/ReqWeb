@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-from books_app.config import DATABASE_URL
+from books_app.core.config import DATABASE_URL
 
 engine = create_engine(
     DATABASE_URL,
