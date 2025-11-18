@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from books_app.core.database_books import SessionLocal
 from books_app.models.book import BookModel
+from books_app.routers.auth import require_role, get_current_user
 from books_app.schemas.book import Book, BookCreate, BookUpdate, BooksResponse
 from books_app.utils.normalize import normalize
 
@@ -24,7 +25,8 @@ def get_db():
 def get_books(
         db: Session = Depends(get_db),
         page: int = Query(1, ge=1),
-        limit: int = Query(10, ge=1, le=50)
+        limit: int = Query(10, ge=1, le=50),
+        current_user=Depends(get_current_user)
 ):
     offset = (page - 1) * limit
 
@@ -40,7 +42,9 @@ def get_books(
 
 # ----- Search -----
 @router.get("/search/{title}", response_model=list[Book])
-def search_books(title: str, db: Session = Depends(get_db)):
+def search_books(title: str, db: Session = Depends(get_db),
+                 # current_user = Depends(get_current_user)
+                 ):
     normalized_query = normalize(title)
 
     books = db.query(BookModel).all()
@@ -63,7 +67,9 @@ def create_book(book: BookCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/books/batch", response_model=List[Book])
-def create_multiple_books(books: List[BookCreate], db: Session = Depends(get_db)):
+def create_multiple_books(books: List[BookCreate], db: Session = Depends(get_db),
+                          # current_user=Depends(require_role("admin"))
+                          ):
     db_books = []
     created_books = []
 
@@ -80,7 +86,9 @@ def create_multiple_books(books: List[BookCreate], db: Session = Depends(get_db)
 
 # ----- Update -----
 @router.put("/{book_id}", response_model=Book)
-def update_book(book_id: UUID, data: BookUpdate, db: Session = Depends(get_db)):
+def update_book(book_id: UUID, data: BookUpdate, db: Session = Depends(get_db),
+                # current_user=Depends(require_role("admin"))
+                ):
     book = db.query(BookModel).filter(BookModel.id == str(book_id)).first()
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
@@ -95,7 +103,9 @@ def update_book(book_id: UUID, data: BookUpdate, db: Session = Depends(get_db)):
 
 # ----- Delete -----
 @router.delete("/{book_id}")
-def delete_book(book_id: UUID, db: Session = Depends(get_db)):
+def delete_book(book_id: UUID, db: Session = Depends(get_db),
+                # current_user=Depends(require_role("admin"))
+                ):
     book = db.query(BookModel).filter(BookModel.id == str(book_id)).first()
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
